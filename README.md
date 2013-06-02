@@ -25,5 +25,5 @@ Run `dmon --help` to get a list of all commands available
 
 dmon has currently been tested and works on
 
-	* Ubuntu (using upstart)
-	* Mac OSX (using launchd)
+* Ubuntu (using upstart)
+* Mac OSX (using launchd)

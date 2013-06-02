@@ -1,0 +1,114 @@
+#!/bin/bash
+
+. $(bashkit path)
+
+LAUNCHD="silent type launchd"
+UPSTART="silent type initctl"
+
+validate () {
+	[ "$(whoami)" != "root" ] && error you should be root
+	[ $# = 0 ] && error name is required
+}
+
+list-deamons () {
+	if $LAUNCHD; then
+		ls /Library/LaunchDaemons | grep com.dmon | sed 's/com.dmon.//' | sed 's/.plist//'
+	elif $UPSTART; then
+		ls /etc/init | grep dmon. | sed 's/dmon.//' | sed 's/.conf//'
+	fi
+}
+
+end () {
+	$*
+	exit 0
+}
+
+tab-2 () {
+	list-deamons
+}
+
+opt create --script,-s --out,-o
+cmd-create () { # create a new daemon. use --script to specify an inline command
+	validate $@
+
+	local name=$1
+	local script=$2
+	local working_dir=$CWD
+
+	mkdir -p /var/log/dmon
+
+	[ $# \< 2 ] && not opt --script && error file or --script required
+
+	render () {
+		local file=$(cat $1)
+		shift
+		while [ $# != 0 ]; do
+			[ "${1:0:2}" != "--" ] && shift && continue
+			local name=\{${1//-/}\}
+			file="${file//$name/$2}"
+			shift; shift
+		done
+		echo "$file"
+	}
+
+	if opt --script; then
+		script=${opt_out:-$CWD/$name.dmon}
+		printf "#!/bin/bash\nPATH=$PATH\n\n$opt_script\n" > "$script"
+	else
+		local base=$(basename $script)
+		cd $(dirname $base)
+		working_dir=$PWD
+		script=$PWD/$base
+	fi
+
+	[ ! -e "$script" ] && error file does not exist
+
+	chmod +x $script
+
+	$LAUNCHD && end render $DIRNAME/launchd.xml --cwd "$working_dir" --name "$name" --script "$script" > /Library/LaunchDaemons/com.dmon.$name.plist
+	$UPSTART && end render $DIRNAME/upstart.conf --cwd "$working_dir" --name "$name" --script "$script" > /etc/init/dmon.$name.conf
+
+	error no daemon provider found
+}
+
+cmd-remove () { # stops and removes a daemon
+	validate $@
+	silent $FILENAME stop $1
+
+	$LAUNCHD && end rm -f /Library/LaunchDaemons/com.dmon.$1.plist
+	$UPSTART && end rm -f /etc/init/dmon.$1.conf
+
+	error no daemon provider found
+}
+
+cmd-start () { # starts a daemon
+	validate $@
+	rm -f /var/log/dmon/$1.err.log
+	rm -f /var/log/dmon/$1.out.log
+
+	$LAUNCHD && end launchctl load -w /Library/LaunchDaemons/com.dmon.$1.plist
+	$UPSTART && end service dmon.$1 start
+
+	error no daemon provider found
+}
+
+cmd-stop () { # stops a daemon
+	validate $@
+
+	$LAUNCHD && end launchctl unload -w /Library/LaunchDaemons/com.dmon.$1.plist
+	$UPSTART && end service dmon.$1 stop
+
+	error no daemon provider found
+}
+
+cmd-restart () { # shorthand for doing a start and a stop
+	validate $@
+	silent $FILENAME stop $1
+	$FILENAME start $1
+}
+
+cmd-list () { # lists daemons created by dmon
+	list-deamons
+}
+
+run

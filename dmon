@@ -11,16 +11,9 @@ validate () {
 }
 
 list-deamons () {
-	if $LAUNCHD; then
-		ls /Library/LaunchDaemons | grep com.dmon | sed 's/com.dmon.//' | sed 's/.plist//'
-	elif $UPSTART; then
-		ls /etc/init | grep dmon. | sed 's/dmon.//' | sed 's/.conf//'
+	if   $LAUNCHD; then ls /Library/LaunchDaemons | grep com.dmon | sed 's/com.dmon.//' | sed 's/.plist//'
+	elif $UPSTART; then ls /etc/init | grep dmon. | sed 's/dmon.//' | sed 's/.conf//'
 	fi
-}
-
-end () {
-	$*
-	exit 0
 }
 
 tab-2 () {
@@ -65,40 +58,39 @@ cmd-create () { # create a new daemon. use --script to specify an inline command
 
 	chmod +x $script
 
-	$LAUNCHD && end render $DIRNAME/launchd.xml --cwd "$working_dir" --name "$name" --script "$script" > /Library/LaunchDaemons/com.dmon.$name.plist
-	$UPSTART && end render $DIRNAME/upstart.conf --cwd "$working_dir" --name "$name" --script "$script" > /etc/init/dmon.$name.conf
-
-	error no daemon provider found
+	if   $LAUNCHD; then render $DIRNAME/launchd.xml --cwd "$working_dir" --name "$name" --script "$script" > /Library/LaunchDaemons/com.dmon.$name.plist
+	elif $UPSTART; then render $DIRNAME/upstart.conf --cwd "$working_dir" --name "$name" --script "$script" > /etc/init/dmon.$name.conf
+	else error no daemon provider found
+	fi
 }
 
 cmd-remove () { # stops and removes a daemon
 	validate $@
 	silent $FILENAME stop $1
 
-	$LAUNCHD && end rm -f /Library/LaunchDaemons/com.dmon.$1.plist
-	$UPSTART && end rm -f /etc/init/dmon.$1.conf
-
-	error no daemon provider found
+	if   $LAUNCHD; then rm -f /Library/LaunchDaemons/com.dmon.$1.plist
+	elif $UPSTART; then rm -f /etc/init/dmon.$1.conf
+	else error no daemon provider found
+	fi
 }
 
 cmd-start () { # starts a daemon
 	validate $@
-	rm -f /var/log/dmon/$1.err.log
-	rm -f /var/log/dmon/$1.out.log
+	rm -f /var/log/dmon/$1.log
 
-	$LAUNCHD && end launchctl load -w /Library/LaunchDaemons/com.dmon.$1.plist
-	$UPSTART && end service dmon.$1 start
-
-	error no daemon provider found
+	if   $LAUNCHD; then launchctl load -w /Library/LaunchDaemons/com.dmon.$1.plist
+	elif $UPSTART; then service dmon.$1 start
+	else error no daemon provider found
+	fi
 }
 
 cmd-stop () { # stops a daemon
 	validate $@
 
-	$LAUNCHD && end launchctl unload -w /Library/LaunchDaemons/com.dmon.$1.plist
-	$UPSTART && end service dmon.$1 stop
-
-	error no daemon provider found
+	if   $LAUNCHD; then launchctl unload -w /Library/LaunchDaemons/com.dmon.$1.plist
+	elif $UPSTART; then service dmon.$1 stop
+	else error no daemon provider found
+	fi
 }
 
 cmd-restart () { # shorthand for doing a start and a stop
@@ -109,6 +101,17 @@ cmd-restart () { # shorthand for doing a start and a stop
 
 cmd-list () { # lists daemons created by dmon
 	list-deamons
+}
+
+opt --follow,-f
+cmd-log () { # print the log from a daemon
+	local logfile=/var/log/dmon/$1.log
+	[ ! -e $logfile ] && error no logs available
+	if opt --follow; then
+		tail -f $logfile
+	else
+		cat $logfile
+	fi
 }
 
 run

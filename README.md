@@ -11,6 +11,7 @@ To create a new daemon simply run
 
 	$ dmon create my-daemon-name file.sh
 
+All daemons will be restarted when crashing and are launched when the system boots.
 You can only create a daemon from an inline script
 
 	$ dmon create my-daemon-name --script "node server.js"

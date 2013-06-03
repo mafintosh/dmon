@@ -93,7 +93,7 @@ cmd-stop () { # stops a daemon
 	fi
 }
 
-cmd-restart () { # shorthand for doing a start and a stop
+cmd-restart () { # shorthand for doing a stop and a start
 	validate $@
 	silent $FILENAME stop $1
 	$FILENAME start $1

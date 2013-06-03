@@ -26,7 +26,7 @@ cmd-create () { # create a new daemon. use --script to specify an inline command
 
 	local name=$1
 	local script=$2
-	local working_dir=$CWD
+	local dir=$CWD
 
 	mkdir -p /var/log/dmon
 
@@ -50,7 +50,7 @@ cmd-create () { # create a new daemon. use --script to specify an inline command
 	else
 		local base=$(basename $script)
 		cd $(dirname $base)
-		working_dir=$PWD
+		dir=$PWD
 		script=$PWD/$base
 	fi
 
@@ -58,8 +58,8 @@ cmd-create () { # create a new daemon. use --script to specify an inline command
 
 	chmod +x $script
 
-	if   $LAUNCHD; then render $DIRNAME/launchd.xml --cwd "$working_dir" --name "$name" --script "$script" > /Library/LaunchDaemons/com.dmon.$name.plist
-	elif $UPSTART; then render $DIRNAME/upstart.conf --cwd "$working_dir" --name "$name" --script "$script" > /etc/init/dmon.$name.conf
+	if   $LAUNCHD; then render $DIRNAME/launchd.xml  --cwd "$dir" --name "$name" --script "$script" > /Library/LaunchDaemons/com.dmon.$name.plist
+	elif $UPSTART; then render $DIRNAME/upstart.conf --cwd "$dir" --name "$name" --script "$script" > /etc/init/dmon.$name.conf
 	else error no daemon provider found
 	fi
 }

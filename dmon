@@ -103,7 +103,7 @@ cmd-list () { # lists daemons created by dmon
 	list-deamons
 }
 
-opt --follow,-f
+opt log --follow,-f
 cmd-log () { # print the log from a daemon
 	local logfile=/var/log/dmon/$1.log
 	[ ! -e $logfile ] && error no logs available

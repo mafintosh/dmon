@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>StandardOutPath</key>
-	<string>/var/log/dmon/{name}.log</string>
+	<string>{logs}/{name}.out.log</string>
 	<key>StandardErrorPath</key>
-	<string>/var/log/dmon/{name}.log</string>
+	<string>{logs}/{name}.err.log</string>
 	<key>Label</key>
 	<string>com.dmon.{name}</string>
 	<key>ProgramArguments</key>

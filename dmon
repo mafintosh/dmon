@@ -5,6 +5,9 @@
 LAUNCHD="silent type launchd"
 UPSTART="silent type initctl"
 
+LOGS=$DIRNAME/logs
+SCRIPTS=$DIRNAME/scripts
+
 validate () {
 	[ "$(whoami)" != "root" ] && error you should be root
 	[ $# = 0 ] && error name is required
@@ -28,7 +31,8 @@ cmd-create () { # create a new daemon. use --script to specify an inline command
 	local script=$2
 	local dir=$CWD
 
-	mkdir -p /var/log/dmon
+	mkdir -p $LOGS
+	mkdir -p $SCRIPTS
 
 	[ $# \< 2 ] && not opt --script && error file or --script required
 
@@ -45,7 +49,7 @@ cmd-create () { # create a new daemon. use --script to specify an inline command
 	}
 
 	if opt --script; then
-		script=${opt_out:-$CWD/$name.dmon}
+		script=${opt_out:-$SCRIPTS/$name.sh}
 		printf "#!/bin/bash\nPATH=$PATH\n\n$opt_script\n" > "$script"
 	else
 		local base=$(basename $script)
@@ -58,8 +62,8 @@ cmd-create () { # create a new daemon. use --script to specify an inline command
 
 	chmod +x $script
 
-	if   $LAUNCHD; then render $DIRNAME/launchd.xml  --cwd "$dir" --name "$name" --script "$script" > /Library/LaunchDaemons/com.dmon.$name.plist
-	elif $UPSTART; then render $DIRNAME/upstart.conf --cwd "$dir" --name "$name" --script "$script" > /etc/init/dmon.$name.conf
+	if   $LAUNCHD; then render $DIRNAME/launchd.xml  --cwd "$dir" --name "$name" --script "$script" --logs "$LOGS" > /Library/LaunchDaemons/com.dmon.$name.plist
+	elif $UPSTART; then render $DIRNAME/upstart.conf --cwd "$dir" --name "$name" --script "$script" --logs "$LOGS" > /etc/init/dmon.$name.conf
 	else error no daemon provider found
 	fi
 }
@@ -67,6 +71,9 @@ cmd-create () { # create a new daemon. use --script to specify an inline command
 cmd-remove () { # stops and removes a daemon
 	validate $@
 	silent $FILENAME stop $1
+
+	rm -f $LOGS/$1.{err,out}.log
+	rm -f $SCRIPTS/$1.sh
 
 	if   $LAUNCHD; then rm -f /Library/LaunchDaemons/com.dmon.$1.plist
 	elif $UPSTART; then rm -f /etc/init/dmon.$1.conf
@@ -105,13 +112,8 @@ cmd-list () { # lists daemons created by dmon
 
 opt log --follow,-f
 cmd-log () { # print the log from a daemon
-	local logfile=/var/log/dmon/$1.log
-	[ ! -e $logfile ] && error no logs available
-	if opt --follow; then
-		tail -f $logfile
-	else
-		cat $logfile
-	fi
+	[ ! -e $LOGS/$1.out.log ] && error no logs available
+	tail $(opt --follow && echo -f || echo +1) $LOGS/$1.{err,out}.log
 }
 
 run

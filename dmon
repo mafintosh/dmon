@@ -5,6 +5,9 @@
 LAUNCHD="silent type launchd"
 UPSTART="silent type initctl"
 
+opt --upstart && UPSTART=true  LAUNCHD=false
+opt --launchd && UPSTART=false LAUNCHD=true
+
 LOGS=$DIRNAME/logs
 SCRIPTS=$DIRNAME/scripts
 

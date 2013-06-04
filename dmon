@@ -7,11 +7,13 @@ UPSTART="silent type initctl"
 
 opt --upstart && UPSTART=true  LAUNCHD=false
 opt --launchd && UPSTART=false LAUNCHD=true
+opt --no-root
 
 LOGS=$DIRNAME/logs
 SCRIPTS=$DIRNAME/scripts
 
 rooted () {
+	opt --no-root && return 0
 	if [ $EUID -ne 0 ]; then
 		sudo $FILENAME "${ARGV[@]}"
 		exit $?
@@ -134,8 +136,17 @@ cmd-describe () { # cat the config file of a daemon
 	fi
 }
 
+opt list --no-status
 cmd-list () { # lists daemons created by dmon
-	list-deamons
+	opt --no-status && list-deamons && return $?
+	rooted $@
+
+	for daemon in $(list-deamons); do
+		if   $LAUNCHD; then echo $daemon $(silent launchctl list com.dmon.$daemon && echo running || echo stopped)
+		elif $UPSTART; then echo $daemon $(silent initctl status dmon.$daemon && echo running || echo stopped)
+		else echo $daemon
+		fi
+	done
 }
 
 opt log --follow,-f

@@ -140,7 +140,7 @@ cmd-log () { # print the log from a daemon
 	validate $@
 	[ ! -e $LOGS/$1.out.log ] && error no logs available
 
-	tail $(opt --follow && echo -f || echo +1) $LOGS/$1.{err,out}.log
+	tail $(opt --follow && echo -f || echo -n+1) $LOGS/$1.{err,out}.log
 }
 
 run

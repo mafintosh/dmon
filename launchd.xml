@@ -8,6 +8,11 @@
 	<string>{logs}/{name}.err.log</string>
 	<key>Label</key>
 	<string>com.dmon.{name}</string>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>PATH</key>
+		<string>{path}</string>
+	</dict>
 	<key>ProgramArguments</key>
 	<array>
 		<string>{script}</string>

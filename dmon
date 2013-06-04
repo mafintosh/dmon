@@ -8,8 +8,14 @@ UPSTART="silent type initctl"
 LOGS=$DIRNAME/logs
 SCRIPTS=$DIRNAME/scripts
 
+rooted () {
+	if [ $EUID -ne 0 ]; then
+		sudo $FILENAME "${ARGV[@]}"
+		exit $?
+	fi
+}
+
 validate () {
-	[ "$(whoami)" != "root" ] && error you should be root
 	[ $# = 0 ] && error name is required
 }
 
@@ -26,6 +32,7 @@ tab-2 () {
 opt create --script,-s --out,-o
 cmd-create () { # create a new daemon. use --script to specify an inline command
 	validate $@
+	rooted
 
 	local name=$1
 	local script=$2
@@ -62,7 +69,7 @@ cmd-create () { # create a new daemon. use --script to specify an inline command
 
 	chmod +x $script
 
-	if   $LAUNCHD; then render $DIRNAME/launchd.xml  --cwd "$dir" --name "$name" --script "$script" --logs "$LOGS" > /Library/LaunchDaemons/com.dmon.$name.plist
+	if   $LAUNCHD; then render $DIRNAME/launchd.xml  --cwd "$dir" --name "$name" --script "$script" --logs "$LOGS" --path "$PATH" > /Library/LaunchDaemons/com.dmon.$name.plist
 	elif $UPSTART; then render $DIRNAME/upstart.conf --cwd "$dir" --name "$name" --script "$script" --logs "$LOGS" > /etc/init/dmon.$name.conf
 	else error no daemon provider found
 	fi
@@ -70,6 +77,8 @@ cmd-create () { # create a new daemon. use --script to specify an inline command
 
 cmd-remove () { # stops and removes a daemon
 	validate $@
+	rooted $@
+
 	silent $FILENAME stop $1
 
 	rm -f $LOGS/$1.{err,out}.log
@@ -81,9 +90,13 @@ cmd-remove () { # stops and removes a daemon
 	fi
 }
 
+opt start --script,-s
 cmd-start () { # starts a daemon
 	validate $@
+	rooted $@
+
 	rm -f /var/log/dmon/$1.log
+	opt --script && ($FILENAME create $1 --script "$opt_script" || return $?)
 
 	if   $LAUNCHD; then launchctl load -w /Library/LaunchDaemons/com.dmon.$1.plist
 	elif $UPSTART; then service dmon.$1 start
@@ -93,6 +106,7 @@ cmd-start () { # starts a daemon
 
 cmd-stop () { # stops a daemon
 	validate $@
+	rooted $@
 
 	if   $LAUNCHD; then launchctl unload -w /Library/LaunchDaemons/com.dmon.$1.plist
 	elif $UPSTART; then service dmon.$1 stop
@@ -102,6 +116,8 @@ cmd-stop () { # stops a daemon
 
 cmd-restart () { # shorthand for doing a stop and a start
 	validate $@
+	rooted $@
+
 	silent $FILENAME stop $1
 	$FILENAME start $1
 }
@@ -112,7 +128,9 @@ cmd-list () { # lists daemons created by dmon
 
 opt log --follow,-f
 cmd-log () { # print the log from a daemon
+	validate $@
 	[ ! -e $LOGS/$1.out.log ] && error no logs available
+
 	tail $(opt --follow && echo -f || echo +1) $LOGS/$1.{err,out}.log
 }
 

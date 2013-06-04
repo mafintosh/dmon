@@ -122,6 +122,15 @@ cmd-restart () { # shorthand for doing a stop and a start
 	$FILENAME start $1
 }
 
+cmd-describe () { # cat the config file of a daemon
+	validate $@
+
+	if   $LAUNCHD; then cat /Library/LaunchDaemons/com.dmon.$1.plist
+	elif $UPSTART; then cat /etc/init/dmon.$1.conf
+	else error no daemon provider found
+	fi
+}
+
 cmd-list () { # lists daemons created by dmon
 	list-deamons
 }

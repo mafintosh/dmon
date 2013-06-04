@@ -57,7 +57,7 @@ cmd-create () { # create a new daemon. use --script to specify an inline command
 
 	if opt --script; then
 		script=${opt_out:-$SCRIPTS/$name.sh}
-		printf "#!/bin/bash\nPATH=$PATH\n\n$opt_script\n" > "$script"
+		echo "$opt_script" > "$script"
 	else
 		local base=$(basename $script)
 		cd $(dirname $base)

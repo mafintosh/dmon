@@ -5,6 +5,10 @@ It is written in bash and available using [bashkit](https://github.com/mafintosh
 
 	bashkit install mafintosh/dmon
 
+Or using this one-line install
+
+	 curl -s https://raw.github.com/mafintosh/dmon/master/install | bash && . $(bashkit rc)
+
 ## Usage
 
 To create a new daemon simply run

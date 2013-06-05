@@ -3,7 +3,7 @@
 Simple daemon control utility that aims to be cross-platform.
 It is written in bash and available using [bashkit](https://github.com/mafintosh/bashkit)
 
-	bashkit install git://github.com/mafintosh/dmon.git
+	bashkit install mafintosh/dmon
 
 ## Usage
 

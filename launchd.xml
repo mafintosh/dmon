@@ -21,8 +21,7 @@
 	<string>{cwd}</string>
 	<key>UserName</key>
 	<string>root</string>
-	<key>RunAtLoad</key>
-	<true/>
+	{conf}
 	<key>KeepAlive</key>
 	<true/>
 	<key>OnDemand</key>

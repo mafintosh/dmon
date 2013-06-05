@@ -5,15 +5,15 @@
 LAUNCHD="silent type launchd"
 UPSTART="silent type initctl"
 
-opt --upstart && UPSTART=true  LAUNCHD=false
-opt --launchd && UPSTART=false LAUNCHD=true
-opt --no-root
-
 LOGS=$DIRNAME/logs
 SCRIPTS=$DIRNAME/scripts
 
+if not opt create --no-boot,-n; then
+	UPSTART_CONF="start on (local-filesystems and net-device-up IFACE=eth0)\nstop on runlevel [!12345]"
+	LAUNCHD_CONF="<key>RunAtLoad</key><true/>"
+fi
+
 rooted () {
-	opt --no-root && return 0
 	if [ $EUID -ne 0 ]; then
 		sudo $FILENAME "${ARGV[@]}"
 		exit $?
@@ -34,8 +34,8 @@ tab-2 () {
 	list-deamons
 }
 
-opt create --script,-s --out,-o
-cmd-create () { # create a new daemon. use --script to specify an inline command
+opt create --command,-c, --start,-s
+cmd-create () { # create a new daemon. use --command to specify an inline command
 	validate $@
 	rooted
 
@@ -46,7 +46,7 @@ cmd-create () { # create a new daemon. use --script to specify an inline command
 	mkdir -p $LOGS
 	mkdir -p $SCRIPTS
 
-	[ $# \< 2 ] && not opt --script && error file or --script required
+	[ $# \< 2 ] && not opt --command && error file or --command required
 
 	render () {
 		local file=$(cat $1)
@@ -59,10 +59,13 @@ cmd-create () { # create a new daemon. use --script to specify an inline command
 		done
 		echo "$file"
 	}
+	render-with-defaults () {
+		render "$@" --cwd "$dir" --name "$name" --script "$script" --logs "$LOGS" --path "$PATH"
+	}
 
-	if opt --script; then
-		script=${opt_out:-$SCRIPTS/$name.sh}
-		echo "$opt_script" > "$script"
+	if opt --command; then
+		script=$SCRIPTS/$name.sh
+		echo "$opt_command" > "$script"
 	else
 		local base=$(basename $script)
 		cd $(dirname $base)
@@ -74,10 +77,12 @@ cmd-create () { # create a new daemon. use --script to specify an inline command
 
 	chmod +x $script
 
-	if   $LAUNCHD; then render $DIRNAME/launchd.xml  --cwd "$dir" --name "$name" --script "$script" --logs "$LOGS" --path "$PATH" > /Library/LaunchDaemons/com.dmon.$name.plist
-	elif $UPSTART; then render $DIRNAME/upstart.conf --cwd "$dir" --name "$name" --script "$script" --logs "$LOGS" > /etc/init/dmon.$name.conf
+	if   $LAUNCHD; then render-with-defaults $DIRNAME/launchd.xml  --conf "$LAUNCHD_CONF" > /Library/LaunchDaemons/com.dmon.$name.plist
+	elif $UPSTART; then render-with-defaults $DIRNAME/upstart.conf --conf "$UPSTART_CONF" > /etc/init/dmon.$name.conf
 	else error no daemon provider found
 	fi
+
+	opt --start && cmd-start $1
 }
 
 cmd-remove () { # stops and removes a daemon
@@ -95,13 +100,11 @@ cmd-remove () { # stops and removes a daemon
 	fi
 }
 
-opt start --script,-s
 cmd-start () { # starts a daemon
 	validate $@
 	rooted $@
 
 	rm -f /var/log/dmon/$1.log
-	opt --script && ($FILENAME create $1 --script "$opt_script" || return $?)
 
 	if   $LAUNCHD; then launchctl load -w /Library/LaunchDaemons/com.dmon.$1.plist
 	elif $UPSTART; then service dmon.$1 start

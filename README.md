@@ -31,7 +31,8 @@ To stop the daemon use
 
 	$ dmon stop my-daemon-name
 
-Run `dmon --help` to get a list of all commands available
+Run `dmon --help` to get a list of all commands available or use autocompletion `dmon <tab><tab>`.
+`dmon create --<tab><tab>` will list available options to create.
 
 ## OS Support
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. $(bashkit path)
+. $(which bashkit)
 
 LAUNCHD="silent type launchd"
 UPSTART="silent type initctl"

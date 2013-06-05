@@ -23,6 +23,10 @@ list-deamons () {
 	fi
 }
 
+tab-list () {
+	: # no completion
+}
+
 tab-2 () {
 	list-deamons
 }

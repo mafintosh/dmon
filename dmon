@@ -139,12 +139,18 @@ sudo-cmd-list () { # lists daemons created by dmon
 	done
 }
 
-opt log --follow,-f
+opt log --follow,-f --out,-o --err,-e
 cmd-log () { # print the log from a daemon
 	validate $@
 	[ ! -e $LOGS/$1.out.log ] && error no logs available
 
-	tail $(opt --follow && echo -f || echo -n+1) $LOGS/$1.{err,out}.log
+	local stderr=$LOGS/$1.err.log
+	local stdout=$LOGS/$1.out.log
+	local files="$stderr $stdout"
+	opt --err && files=$stderr
+	opt --out && files=$stdout
+
+	tail $(opt --follow && echo -f || echo -n+1) $files
 }
 
 run

@@ -1,11 +1,9 @@
 # dmon
 
 Simple daemon control utility that aims to be cross-platform.
-It is written in bash and available using [bashkit](https://github.com/mafintosh/bashkit)
+It is written in bash and build using [bashkit](https://github.com/mafintosh/bashkit)
 
-	bashkit install mafintosh/dmon
-
-Or using this one-line install
+One-line install
 
 	 curl -s https://raw.github.com/mafintosh/dmon/master/install | bash && . $(bashkit rc)
 

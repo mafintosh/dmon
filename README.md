@@ -5,7 +5,7 @@ It is written in bash and build using [bashkit](https://github.com/mafintosh/bas
 
 One-line install
 
-	 curl -s https://raw.github.com/mafintosh/dmon/master/install | bash && . $(bashkit rc)
+	 curl -fs https://raw.github.com/mafintosh/dmon/master/install | bash && . $(bashkit rc)
 
 ## Usage
 

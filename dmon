@@ -9,7 +9,7 @@ LOGS=$DIRNAME/logs
 SCRIPTS=$DIRNAME/scripts
 
 if not opt create --no-boot,-n; then
-	UPSTART_CONF="start on (local-filesystems and net-device-up IFACE=eth0)\nstop on runlevel [!12345]"
+	UPSTART_CONF="start on (local-filesystems and net-device-up IFACE=eth0)"$'\n'"stop on runlevel [!12345]"
 	LAUNCHD_CONF="<key>RunAtLoad</key><true/>"
 fi
 
@@ -78,7 +78,7 @@ sudo-cmd-create () { # create a new daemon. use --command to specify an inline c
 	else error no daemon provider found
 	fi
 
-	opt --start && cmd-start $1
+	opt --start && sudo-cmd-start $1
 }
 
 sudo-cmd-remove () { # stops and removes a daemon

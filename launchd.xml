@@ -13,6 +13,11 @@
 		<key>PATH</key>
 		<string>{path}</string>
 	</dict>
+	<key>SoftResourceLimits</key>
+	<dict>
+		<key>NumberOfFiles</key>
+		<integer>10240</integer>
+	</dict>
 	<key>ProgramArguments</key>
 	<array>
 		<string>{script}</string>

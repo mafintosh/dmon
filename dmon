@@ -79,6 +79,7 @@ sudo-cmd-create () { # create a new daemon. use --command to specify an inline c
 	if   $LAUNCHD; then render-with-defaults $DIRNAME/templates/launchd.xml  --conf "$LAUNCHD_CONF" > /Library/LaunchDaemons/com.dmon.$name.plist
 	elif $UPSTART; then render-with-defaults $DIRNAME/templates/upstart.conf --conf "$UPSTART_CONF" > /etc/init/dmon.$name.conf
 	elif $INITD  ; then
+		opt --command && script="$command"
 		render-with-defaults $DIRNAME/templates/initd.sh --conf "$INITD_CONF" > /etc/init.d/dmon.$name
 		chmod +x /etc/init.d/dmon.$name
 		not opt --no-boot && silent update-rc.d dmon.$name enable

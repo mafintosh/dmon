@@ -1,0 +1,12 @@
+#!/bin/bash
+# this is a simple respawn fallback for initd
+
+while true; do
+	for name in $(ls scripts | grep .pid | sed 's/.pid//'); do
+		pid=$(cat scripts/$name.pid 2> /dev/null)
+		[ "$pid" = "" ] && continue
+		ps -p $pid 2> /dev/null > /dev/null && continue
+		dmon start $name
+	done
+	sleep 5
+done

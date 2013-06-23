@@ -18,10 +18,11 @@ running () {
 }
 
 respawn () {
-	local pid=$(cat $PIDFILE)
+	echo "$RANDOM $RANDOM $RANDOM" > $PIDFILE.lock
+	local id=$(cat $PIDFILE.lock)
 	while true; do
 		{script} 2>> {logs}/{name}.err.log >> {logs}/{name}.out.log
-		[ "$pid" != "$(cat $PIDFILE)" ] && exit 0
+		[ "$id" != "$(cat $PIDFILE.lock)" ] && exit 0
 		sleep 1
 	done
 }
@@ -52,11 +53,15 @@ stop)
 	if running; then
 		TMP_PID=$(cat $PIDFILE)
 		rm -f $PIDFILE
-		kill -- -$(ps opgid= $TMP_PID) > /dev/null 2> /dev/null
+		rm -f $PIDFILE.lock
+		for p in $(ps opgid= $TMP_PID); do
+			kill -- -$p > /dev/null 2> /dev/null
+		done
 		echo {name} stopped
 	else
 		echo {name} not running
 		rm -f $PIDFILE
+		rm -f $PIDFILE.lock
 		exit 1
 	fi
 ;;

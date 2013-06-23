@@ -40,7 +40,6 @@ dmon has currently been tested and works on
 
 * Ubuntu (using upstart)
 * Mac OSX (using launchd)
-* Debian/Raspberri (using init.d)
+* Debian/Raspbian (using init.d)
 
-When using init.d dmon uses a small deamon itself (initd-respawn) to respawn processes when they crash.
-If anyone know of a better solution respawn using init.d please let me know.
+It should also work on other system that provides either upstart, launchd or init.d

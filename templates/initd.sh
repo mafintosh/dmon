@@ -20,11 +20,14 @@ running () {
 case "$1" in
 start)
 	if running; then
-		echo already running
+		echo {name} already running
 		exit 1
 	else
-		PID=$(ulimit -n 10240; cd "{cwd}"; {script} 2> {logs}/{name}.err.log > {logs}/{name}.out.log & echo $!)
+		ulimit -n 10240
+		cd "{cwd}"
+		PID=$({script} 2> {logs}/{name}.err.log > {logs}/{name}.out.log & echo $!)
 		echo $PID > $PIDFILE
+		echo {name} started
 	fi
 ;;
 status)
@@ -39,7 +42,7 @@ stop)
 		kill $(cat $PIDFILE)
 		rm -f $PIDFILE
 	else
-		echo not running
+		echo {name} not running
 		rm -f $PIDFILE
 		exit 1
 	fi

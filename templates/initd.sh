@@ -41,8 +41,10 @@ status)
 ;;
 stop)
 	if running; then
-		[ -f $PIDFILE ] && kill $(cat $PIDFILE)
+		TMP_PID=$(cat $PIDFILE)
 		rm -f $PIDFILE
+		pkill -TERM -P $TMP_PID > /dev/null 2> /dev/null
+		kill $TMP_PID > /dev/null 2> /dev/null
 		echo {name} stopped
 	else
 		echo {name} not running

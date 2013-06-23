@@ -17,6 +17,15 @@ running () {
 	return $?
 }
 
+respawn () {
+	local pid=$(cat $PIDFILE)
+	while true; do
+		{script} 2>> {logs}/{name}.err.log >> {logs}/{name}.out.log
+		[ "$pid" != "$(cat $PIDFILE)" ] && exit 0
+		sleep 1
+	done
+}
+
 case "$1" in
 start)
 	if running; then
@@ -25,7 +34,7 @@ start)
 	else
 		ulimit -n 10240
 		cd "{cwd}"
-		{script} 2> {logs}/{name}.err.log > {logs}/{name}.out.log &
+		respawn 2> /dev/null > /dev/null &
 		PID=$!
 		printf $PID > $PIDFILE
 		echo {name} started

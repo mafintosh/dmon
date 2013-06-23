@@ -16,12 +16,6 @@ running () {
 	ps -p $(cat $PIDFILE) > /dev/null
 	return $?
 }
-respawn () {
-	while true; do
-		{script} 2> {logs}/{name}.err.log > {logs}/{name}.out.log
-		sleep 1
-	done
-}
 
 case "$1" in
 start)
@@ -31,8 +25,8 @@ start)
 	else
 		ulimit -n 10240
 		cd "{cwd}"
-		respawn &
-		local PID=$!
+		{script} 2> {logs}/{name}.err.log > {logs}/{name}.out.log &
+		PID=$!
 		printf $PID > $PIDFILE
 		echo {name} started
 		exit 0
@@ -47,7 +41,7 @@ status)
 ;;
 stop)
 	if running; then
-		[ -f $PIDFILE ] && pkill -TERM -F $PIDFILE
+		[ -f $PIDFILE ] && kill $(cat $PIDFILE)
 		rm -f $PIDFILE
 		echo {name} stopped
 	else

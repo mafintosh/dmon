@@ -18,12 +18,8 @@ running () {
 }
 respawn () {
 	while true; do
-		{script} 2> {logs}/{name}.err.log > {logs}/{name}.out.log &
-		local PID=$!
-		printf $PID > $PIDFILE
-		wait $PID
+		{script} 2> {logs}/{name}.err.log > {logs}/{name}.out.log
 		sleep 1
-		[ "$(cat $PIDFILE 2> /dev/null)" != "$PID" ] && exit 0
 	done
 }
 
@@ -36,7 +32,10 @@ start)
 		ulimit -n 10240
 		cd "{cwd}"
 		respawn &
+		local PID=$!
+		printf $PID > $PIDFILE
 		echo {name} started
+		exit 0
 	fi
 ;;
 status)
@@ -48,7 +47,7 @@ status)
 ;;
 stop)
 	if running; then
-		kill $(cat $PIDFILE)
+		[ -f $PIDFILE ] && pkill -TERM -F $PIDFILE
 		rm -f $PIDFILE
 		echo {name} stopped
 	else

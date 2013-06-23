@@ -42,5 +42,5 @@ dmon has currently been tested and works on
 * Mac OSX (using launchd)
 * Debian/Raspberri (using init.d)
 
-When using init.d dmon uses a small deamon to respawn processes when they crash.
+When using init.d dmon uses a small deamon itself (initd-respawn) to respawn processes when they crash.
 If anyone know of a better solution respawn using init.d please let me know.

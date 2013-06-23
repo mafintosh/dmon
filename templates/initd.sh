@@ -16,6 +16,16 @@ running () {
 	ps -p $(cat $PIDFILE) > /dev/null
 	return $?
 }
+respawn () {
+	while true; do
+		{script} 2> {logs}/{name}.err.log > {logs}/{name}.out.log &
+		local PID=$!
+		printf $PID > $PIDFILE
+		wait $PID
+		sleep 1
+		[ "$(cat $PIDFILE 2> /dev/null)" != "$PID" ] && exit 0
+	done
+}
 
 case "$1" in
 start)
@@ -25,8 +35,7 @@ start)
 	else
 		ulimit -n 10240
 		cd "{cwd}"
-		PID=$({script} 2> {logs}/{name}.err.log > {logs}/{name}.out.log & echo $!)
-		echo $PID > $PIDFILE
+		respawn &
 		echo {name} started
 	fi
 ;;

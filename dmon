@@ -82,7 +82,7 @@ sudo-cmd-create () { # create a new daemon. use --command to specify an inline c
 		opt --command && script="$opt_command"
 		render-with-defaults $DIRNAME/templates/initd.sh --conf "$INITD_CONF" > /etc/init.d/dmon.$name
 		chmod +x /etc/init.d/dmon.$name
-		not opt --no-boot && silent update-rc.d dmon.$name enable
+		not opt --no-boot && silent update-rc.d dmon.$name defaults
 	else error no daemon provider found
 	fi
 

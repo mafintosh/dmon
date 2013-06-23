@@ -41,6 +41,7 @@ stop)
 	if running; then
 		kill $(cat $PIDFILE)
 		rm -f $PIDFILE
+		echo {name} stopped
 	else
 		echo {name} not running
 		rm -f $PIDFILE

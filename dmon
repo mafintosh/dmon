@@ -79,7 +79,7 @@ sudo-cmd-create () { # create a new daemon. use --command to specify an inline c
 	if   $LAUNCHD; then render-with-defaults $DIRNAME/templates/launchd.xml  --conf "$LAUNCHD_CONF" > /Library/LaunchDaemons/com.dmon.$name.plist
 	elif $UPSTART; then render-with-defaults $DIRNAME/templates/upstart.conf --conf "$UPSTART_CONF" > /etc/init/dmon.$name.conf
 	elif $INITD  ; then
-		if not opt --no-fallback && [ -f /etc/init.d/dmon.initd-respawn ]; then
+		if not opt --no-fallback && [ ! -f /etc/init.d/dmon.initd-respawn ]; then
 			cd $DIRNAME
 			$FILENAME create initd-respawn --no-fallback --command "./respawn"
 		fi

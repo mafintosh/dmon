@@ -4,6 +4,7 @@
 
 LAUNCHD="silent type launchd"
 UPSTART="silent type initctl"
+INITD="[ -d /etc/init.d/ ]"
 
 LOGS=$DIRNAME/logs
 SCRIPTS=$DIRNAME/scripts
@@ -20,6 +21,7 @@ validate () {
 list-deamons () {
 	if   $LAUNCHD; then ls /Library/LaunchDaemons | grep com.dmon | sed 's/com.dmon.//' | sed 's/.plist//'
 	elif $UPSTART; then ls /etc/init | grep dmon. | sed 's/dmon.//' | sed 's/.conf//'
+	elif $INITD  ; then ls /etc/init.d | grep dmon. | sed 's/dmon.//'
 	fi
 }
 
@@ -38,6 +40,7 @@ sudo-cmd-create () { # create a new daemon. use --command to specify an inline c
 	local name=$1
 	local script=$2
 	local dir=$CWD
+	local pidfile=$SCRIPTS/$name.pid
 
 	mkdir -p $LOGS
 	mkdir -p $SCRIPTS
@@ -56,7 +59,7 @@ sudo-cmd-create () { # create a new daemon. use --command to specify an inline c
 		echo "$file"
 	}
 	render-with-defaults () {
-		render "$@" --cwd "$dir" --name "$name" --script "$script" --logs "$LOGS" --path "$PATH"
+		render "$@" --cwd "$dir" --name "$name" --script "$script" --logs "$LOGS" --path "$PATH" --pidfile "$pidfile"
 	}
 
 	if opt --command; then
@@ -73,8 +76,12 @@ sudo-cmd-create () { # create a new daemon. use --command to specify an inline c
 
 	chmod +x $script
 
-	if   $LAUNCHD; then render-with-defaults $DIRNAME/launchd.xml  --conf "$LAUNCHD_CONF" > /Library/LaunchDaemons/com.dmon.$name.plist
-	elif $UPSTART; then render-with-defaults $DIRNAME/upstart.conf --conf "$UPSTART_CONF" > /etc/init/dmon.$name.conf
+	if   $LAUNCHD; then render-with-defaults $DIRNAME/templates/launchd.xml  --conf "$LAUNCHD_CONF" > /Library/LaunchDaemons/com.dmon.$name.plist
+	elif $UPSTART; then render-with-defaults $DIRNAME/templates/upstart.conf --conf "$UPSTART_CONF" > /etc/init/dmon.$name.conf
+	elif $INITD  ; then
+		render-with-defaults $DIRNAME/templates/initd.sh --conf "$INITD_CONF" > /etc/init.d/dmon.$name
+		chmod +x /etc/init.d/dmon.$name
+		not opt --no-boot && silent update-rc.d dmon.$name enable
 	else error no daemon provider found
 	fi
 
@@ -91,6 +98,7 @@ sudo-cmd-remove () { # stops and removes a daemon
 
 	if   $LAUNCHD; then rm -f /Library/LaunchDaemons/com.dmon.$1.plist
 	elif $UPSTART; then rm -f /etc/init/dmon.$1.conf
+	elif $INITD  ; then silent update-rc.d dmon.$name remove && rm -f /etc/init.d/dmon.$1
 	else error no daemon provider found
 	fi
 }
@@ -102,6 +110,7 @@ sudo-cmd-start () { # starts a daemon
 
 	if   $LAUNCHD; then launchctl load -w /Library/LaunchDaemons/com.dmon.$1.plist
 	elif $UPSTART; then service dmon.$1 start
+	elif $INITD  ; then /etc/init.d/dmon.$1 start
 	else error no daemon provider found
 	fi
 }
@@ -111,6 +120,7 @@ sudo-cmd-stop () { # stops a daemon
 
 	if   $LAUNCHD; then launchctl unload -w /Library/LaunchDaemons/com.dmon.$1.plist
 	elif $UPSTART; then service dmon.$1 stop
+	elif $INITD  ; then /etc/init.d/dmon.$1 stop
 	else error no daemon provider found
 	fi
 }
@@ -127,6 +137,7 @@ cmd-describe () { # cat the config file of a daemon
 
 	if   $LAUNCHD; then cat /Library/LaunchDaemons/com.dmon.$1.plist
 	elif $UPSTART; then cat /etc/init/dmon.$1.conf
+	elif $INITD  ; then cat /etc/init.d/dmon.$1
 	else error no daemon provider found
 	fi
 }
@@ -138,6 +149,7 @@ sudo-cmd-list () { # lists daemons created by dmon
 	for daemon in $(list-deamons); do
 		if   $LAUNCHD; then echo $daemon $(silent launchctl list com.dmon.$daemon && echo running || echo stopped)
 		elif $UPSTART; then echo $daemon $(silent initctl status dmon.$daemon && echo running || echo stopped)
+		elif $INITD  ; then echo $daemon $(/etc/init.d/dmon.$daemon status)
 		else echo $daemon
 		fi
 	done

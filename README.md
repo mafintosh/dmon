@@ -1,6 +1,6 @@
 # dmon
 
-Simple daemon control utility that aims to be cross-platform.
+Daemon control utility that aims to be cross-platform.
 It is written in bash and build using [bashkit](https://github.com/mafintosh/bashkit)
 
 One-line install

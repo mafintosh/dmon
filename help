@@ -1,0 +1,30 @@
+usage: dmon <command> [<daemon>] [<options>]
+
+The available commands are
+   create     create a new daemon.
+              optionally you can pass a <script> as the 4th argument.
+                --command,-c to specify the command to run
+                --interactive,-i specify the command in your editor
+                --no-boot,-n to not run the daemon on system boot
+
+   start      starts a daemon
+
+   stop       stops a daemon
+
+   restart    shorthand for doing a stop and a start
+
+   edit       edit command for an existing daemon
+
+   remove     stops and removes a daemon
+
+   describe   cat the script file of a daemon
+
+   log        print the log from a daemon
+                --follow,-f to tail -f the log
+                --out,-o to only print stdout
+                --err,-e to only print stderr
+
+   list       lists daemons created by dmon
+                --no-status to not print the daemon status
+
+Running 'dmon --help' will print this message

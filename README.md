@@ -18,6 +18,10 @@ You can also create a daemon from a command using `--command` or `-c`
 
 	$ dmon create my-daemon-name --command "node server.js"
 
+To type in the command using your default editor use `--interactive` or `-i`
+
+	$ dmon create my-daemon-name --interactive # enter the command in your editor
+
 If you don't want the daemon to launch when the system boots use `--no-boot` or `-n`
 
 	$ dmon create my-daemon-name --no-boot --command "node server.js"

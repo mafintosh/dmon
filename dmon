@@ -33,19 +33,20 @@ tab-2 () {
 	list-deamons
 }
 
-opt create --command,-c, --start,-s
+opt create --command,-c, --start,-s, --interactive,-i
 sudo-cmd-create () { # create a new daemon. use --command to specify an inline command
 	validate $@
 
 	local name=$1
 	local script=$2
 	local dir=$CWD
+	local cmdfile=$SCRIPTS/$name.sh
 	local pidfile=$SCRIPTS/$name.pid
 
 	mkdir -p $LOGS
 	mkdir -p $SCRIPTS
 
-	[ $# \< 2 ] && not opt --command && error file or --command required
+	[ $# \< 2 ] && not opt --command && not opt --interactive && error file or --command required
 
 	render () {
 		local file=$(cat $1)
@@ -59,22 +60,21 @@ sudo-cmd-create () { # create a new daemon. use --command to specify an inline c
 		echo "$file"
 	}
 	render-with-defaults () {
-		render "$@" --cwd "$dir" --name "$name" --script "$script" --logs "$LOGS" --path "$PATH" --pidfile "$pidfile"
+		render "$@" --cwd "$dir" --name "$name" --script "$cmdfile" --logs "$LOGS" --path "$PATH" --pidfile "$pidfile"
 	}
 
-	if opt --command; then
-		script=$SCRIPTS/$name.sh
-		echo "$opt_command" > "$script"
+	if opt --command || opt --interactive; then
+		echo "$opt_command" > "$cmdfile"
 	else
 		local base=$(basename $script)
 		cd $(dirname $base)
 		dir=$PWD
-		script=$PWD/$base
+		ln -s "$PWD/$base" $cmdfile
 	fi
 
-	[ ! -e "$script" ] && error file does not exist
+	[ ! -e "$cmdfile" ] && error file does not exist
 
-	chmod +x $script
+	chmod +x $cmdfile
 
 	if   $LAUNCHD; then render-with-defaults $DIRNAME/templates/launchd.xml  --conf "$LAUNCHD_CONF" > /Library/LaunchDaemons/com.dmon.$name.plist
 	elif $UPSTART; then render-with-defaults $DIRNAME/templates/upstart.conf --conf "$UPSTART_CONF" > /etc/init/dmon.$name.conf
@@ -85,7 +85,8 @@ sudo-cmd-create () { # create a new daemon. use --command to specify an inline c
 	else error no daemon provider found
 	fi
 
-	opt --start && sudo-cmd-start $1
+	opt --interactive && sudo-cmd-edit $name
+	opt --start && sudo-cmd-start $name
 }
 
 sudo-cmd-remove () { # stops and removes a daemon
@@ -125,6 +126,12 @@ sudo-cmd-stop () { # stops a daemon
 	fi
 }
 
+sudo-cmd-edit () { # edit command for an existing daemon
+	validate $@
+
+	${EDITOR:-nano} $SCRIPTS/$1.sh
+}
+
 sudo-cmd-restart () { # shorthand for doing a stop and a start
 	validate $@
 
@@ -132,14 +139,10 @@ sudo-cmd-restart () { # shorthand for doing a stop and a start
 	$FILENAME start $1
 }
 
-cmd-describe () { # cat the config file of a daemon
+cmd-describe () { # cat the script file of a daemon
 	validate $@
 
-	if   $LAUNCHD; then cat /Library/LaunchDaemons/com.dmon.$1.plist
-	elif $UPSTART; then cat /etc/init/dmon.$1.conf
-	elif $INITD  ; then cat /etc/init.d/dmon.$1
-	else error no daemon provider found
-	fi
+	cat $SCRIPTS/$1.sh
 }
 
 opt list --no-status

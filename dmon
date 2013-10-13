@@ -155,7 +155,7 @@ sudo-cmd-list () {
 
 	for daemon in $(list-deamons); do
 		if   $LAUNCHD; then echo $daemon $(silent launchctl list com.dmon.$daemon && echo running || echo stopped)
-		elif $UPSTART; then echo $daemon $(silent initctl status dmon.$daemon && echo running || echo stopped)
+		elif $UPSTART; then echo $daemon $(silent initctl status dmon.$daemon | silent grep running && echo running || echo stopped)
 		elif $INITD  ; then echo $daemon $(/etc/init.d/dmon.$daemon status)
 		else echo $daemon
 		fi

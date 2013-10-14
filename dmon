@@ -73,6 +73,7 @@ sudo-cmd-create () {
 		local base=$(basename $script)
 		cd $(dirname $base)
 		dir=$PWD
+		rm -f $cmdfile
 		ln -s "$PWD/$base" $cmdfile
 	fi
 

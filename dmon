@@ -109,10 +109,11 @@ sudo-cmd-remove () {
 	fi
 }
 
+opt start --persist-log
 sudo-cmd-start () {
 	validate $@
 
-	rm -f $LOGS/$1.{err,out}.log # tidy logs - bit controversial
+	! opt --persist-log && rm -f $LOGS/$1.{err,out}.log # tidy logs - bit controversial
 
 	if   $LAUNCHD; then launchctl load -w /Library/LaunchDaemons/com.dmon.$1.plist
 	elif $UPSTART; then service dmon.$1 start
@@ -137,11 +138,12 @@ sudo-cmd-edit () {
 	${EDITOR:-nano} $SCRIPTS/$1.sh
 }
 
+opt restart --persist-log
 sudo-cmd-restart () {
 	validate $@
 
 	silent $FILENAME stop $1
-	$FILENAME start $1
+	$FILENAME start $1 $(opt --persist-log && echo --persist-log)
 }
 
 cmd-describe () {

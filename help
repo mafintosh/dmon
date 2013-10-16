@@ -8,10 +8,12 @@ The available commands are
                 --no-boot,-n to not run the daemon on system boot
 
    start      starts a daemon
+                --persist-log to not clear old logs
 
    stop       stops a daemon
 
    restart    shorthand for doing a stop and a start
+                --persist-log to not clear old logs
 
    edit       edit command for an existing daemon
 

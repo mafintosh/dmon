@@ -21,7 +21,7 @@ respawn () {
 	echo "$RANDOM $RANDOM $RANDOM" > $PIDFILE.lock
 	local id=$(cat $PIDFILE.lock)
 	while true; do
-		{script} 2>> {logs}/{name}.err.log >> {logs}/{name}.out.log
+		{script} 2>> {logs}/{name}.log >> {logs}/{name}.log
 		[ "$id" != "$(cat $PIDFILE.lock)" ] && exit 0
 		sleep 1
 	done

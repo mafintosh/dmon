@@ -99,7 +99,7 @@ sudo-cmd-remove () {
 
 	silent $FILENAME stop $1
 
-	rm -f $LOGS/$1.{err,out}.log
+	rm -f $LOGS/$1.log
 	rm -f $SCRIPTS/$1.sh
 
 	if   $LAUNCHD; then rm -f /Library/LaunchDaemons/com.dmon.$1.plist
@@ -113,7 +113,7 @@ opt start --persist-log
 sudo-cmd-start () {
 	validate $@
 
-	! opt --persist-log && rm -f $LOGS/$1.{err,out}.log # tidy logs - bit controversial
+	! opt --persist-log && rm -f $LOGS/$1.log # tidy logs - bit controversial
 
 	if   $LAUNCHD; then launchctl load -w /Library/LaunchDaemons/com.dmon.$1.plist
 	elif $UPSTART; then service dmon.$1 start
@@ -165,18 +165,12 @@ sudo-cmd-list () {
 	done
 }
 
-opt log --follow,-f --out,-o --err,-e
+opt log --follow,-f
 cmd-log () {
 	validate $@
-	[ ! -e $LOGS/$1.out.log ] && error no logs available
+	[ ! -e $LOGS/$1.log ] && error no logs available
 
-	local stderr=$LOGS/$1.err.log
-	local stdout=$LOGS/$1.out.log
-	local files="$stderr $stdout"
-	opt --err && files=$stderr
-	opt --out && files=$stdout
-
-	tail $(opt --follow && echo -f || echo -n+1) $files
+	tail $(opt --follow && echo -f || echo -n+1) $LOGS/$1.log
 }
 
 run

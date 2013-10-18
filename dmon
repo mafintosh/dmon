@@ -99,7 +99,7 @@ sudo-cmd-remove () {
 
 	silent $FILENAME stop $1
 
-	rm -f $LOGS/$1.log
+	rm -f $LOGS/$1.{log,log.old}
 	rm -f $SCRIPTS/$1.sh
 
 	if   $LAUNCHD; then rm -f /Library/LaunchDaemons/com.dmon.$1.plist
@@ -109,11 +109,12 @@ sudo-cmd-remove () {
 	fi
 }
 
-opt start --persist-log
+opt start --clear,-c --no-log-limit
 sudo-cmd-start () {
 	validate $@
 
-	! opt --persist-log && rm -f $LOGS/$1.log # tidy logs - bit controversial
+	! opt --no-log-limit && [ "$(find $LOGS/$1.log -size +25M 2> /dev/null)" != "" ] && (mv $LOGS/$1.{log,log.old}; touch $LOGS/$1.log)
+	opt --clear && rm -f $LOGS/$1.{log,.log.old}
 
 	if   $LAUNCHD; then launchctl load -w /Library/LaunchDaemons/com.dmon.$1.plist
 	elif $UPSTART; then service dmon.$1 start
@@ -138,12 +139,14 @@ sudo-cmd-edit () {
 	${EDITOR:-nano} $SCRIPTS/$1.sh
 }
 
-opt restart --persist-log
+opt restart --clear,-c --no-log-limit
 sudo-cmd-restart () {
 	validate $@
 
+	opt --clear && rm -f $LOGS/$1.{log,log.old}
+
 	silent $FILENAME stop $1
-	$FILENAME start $1 $(opt --persist-log && echo --persist-log)
+	$FILENAME start $1 $(opt --no-log-limit && echo --no-log-limit)
 }
 
 cmd-describe () {
@@ -170,7 +173,11 @@ cmd-log () {
 	validate $@
 	[ ! -e $LOGS/$1.log ] && error no logs available
 
-	tail $(opt --follow && echo -f || echo -n+1) $LOGS/$1.log
+	if opt --follow; then
+		tail -F $LOGS/$1.log
+	else
+		cat $LOGS/$1.{log,log.old} 2> /dev/null
+	fi
 }
 
 run

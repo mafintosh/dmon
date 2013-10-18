@@ -109,11 +109,11 @@ sudo-cmd-remove () {
 	fi
 }
 
-opt start --clear,-c --no-log-limit
+opt start --clear,-c --no-log-clean
 sudo-cmd-start () {
 	validate $@
 
-	! opt --no-log-limit && [ "$(find $LOGS/$1.log -size +25M 2> /dev/null)" != "" ] && (mv $LOGS/$1.{log,log.old}; touch $LOGS/$1.log)
+	! opt --no-log-clean && [ "$(find $LOGS/$1.log -size +25M 2> /dev/null)" != "" ] && (mv $LOGS/$1.{log,log.old}; touch $LOGS/$1.log)
 	opt --clear && rm -f $LOGS/$1.{log,.log.old}
 
 	if   $LAUNCHD; then launchctl load -w /Library/LaunchDaemons/com.dmon.$1.plist
@@ -139,14 +139,14 @@ sudo-cmd-edit () {
 	${EDITOR:-nano} $SCRIPTS/$1.sh
 }
 
-opt restart --clear,-c --no-log-limit
+opt restart --clear,-c --no-log-clean
 sudo-cmd-restart () {
 	validate $@
 
 	opt --clear && rm -f $LOGS/$1.{log,log.old}
 
 	silent $FILENAME stop $1
-	$FILENAME start $1 $(opt --no-log-limit && echo --no-log-limit)
+	$FILENAME start $1 $(opt --no-log-clean && echo --no-log-clean)
 }
 
 cmd-describe () {

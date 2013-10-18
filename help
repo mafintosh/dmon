@@ -9,13 +9,13 @@ The available commands are
 
    start      starts a daemon
                 --clear,-c to clear old logs
-                --no-log-limit to not clean old logs > 50mb
+                --no-log-clean to not clean old logs if space used > 50mb
 
    stop       stops a daemon
 
    restart    shorthand for doing a stop and a start
                 --clear,-c to clear old logs
-                --no-log-limit to not clean old logs > 50mb
+                --no-log-clean to not clean old logs if space used > 50mb
 
    edit       edit command for an existing daemon
 

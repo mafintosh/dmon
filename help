@@ -8,12 +8,14 @@ The available commands are
                 --no-boot,-n to not run the daemon on system boot
 
    start      starts a daemon
-                --persist-log to not clear old logs
+                --clear,-c to clear old logs
+                --no-log-limit to not clean old logs > 50mb
 
    stop       stops a daemon
 
    restart    shorthand for doing a stop and a start
-                --persist-log to not clear old logs
+                --clear,-c to clear old logs
+                --no-log-limit to not clean old logs > 50mb
 
    edit       edit command for an existing daemon
 
@@ -23,8 +25,6 @@ The available commands are
 
    log        print the log from a daemon
                 --follow,-f to tail -f the log
-                --out,-o to only print stdout
-                --err,-e to only print stderr
 
    list       lists daemons created by dmon
                 --no-status to not print the daemon status

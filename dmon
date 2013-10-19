@@ -113,8 +113,8 @@ opt start --clear,-c --no-log-clean
 sudo-cmd-start () {
 	validate $@
 
-	! opt --no-log-clean && [ "$(find $LOGS/$1.log -size +25M 2> /dev/null)" != "" ] && (mv $LOGS/$1.{log,log.old}; touch $LOGS/$1.log)
-	opt --clear && rm -f $LOGS/$1.{log,.log.old}
+	[ "$(find $LOGS/$1.log -size +25M 2> /dev/null)" != "" ] && (mv $LOGS/$1.{log,log.old}; touch $LOGS/$1.log)
+	opt --clear && rm -f $LOGS/$1.{log,log.old}
 
 	if   $LAUNCHD; then launchctl load -w /Library/LaunchDaemons/com.dmon.$1.plist
 	elif $UPSTART; then service dmon.$1 start

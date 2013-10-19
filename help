@@ -8,14 +8,12 @@ The available commands are
                 --no-boot,-n to not run the daemon on system boot
 
    start      starts a daemon
-                --clear,-c to clear old logs
-                --no-log-clean to not clean old logs if space used > 50mb
+                --clear,-c to force clear old logs
 
    stop       stops a daemon
 
    restart    shorthand for doing a stop and a start
-                --clear,-c to clear old logs
-                --no-log-clean to not clean old logs if space used > 50mb
+                --clear,-c to force clear old logs
 
    edit       edit command for an existing daemon
 
@@ -24,6 +22,7 @@ The available commands are
    describe   cat the script file of a daemon
 
    log        print the log from a daemon
+              when a deamon is restarted old logs are capped to ~50mb
                 --follow,-f to tail -f the log
 
    list       lists daemons created by dmon

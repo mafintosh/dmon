@@ -6,6 +6,7 @@ The available commands are
                 --command,-c to specify the command to run
                 --interactive,-i specify the command in your editor
                 --no-boot,-n to not run the daemon on system boot
+                --user,-u to specify the daemon user (defaults to root)
 
    start      starts a daemon
                 --clear,-c to force clear old logs

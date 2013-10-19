@@ -136,7 +136,7 @@ sudo-cmd-stop () {
 sudo-cmd-edit () {
 	validate $@
 
-	${EDITOR:-nano} $SCRIPTS/$1.sh
+	${EDITOR:-vi} $SCRIPTS/$1.sh
 }
 
 opt restart --clear,-c --no-log-clean

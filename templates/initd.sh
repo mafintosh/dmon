@@ -10,6 +10,7 @@
 
 PIDFILE={pidfile}
 PATH={path}
+[ "{user}" != "root" ] && USER_SETUP="sudo -u {user}"
 
 running () {
 	[ ! -f $PIDFILE ] && return 1
@@ -21,7 +22,7 @@ respawn () {
 	echo "$RANDOM $RANDOM $RANDOM" > $PIDFILE.lock
 	local id=$(cat $PIDFILE.lock)
 	while true; do
-		sudo -u {user} {script} 2>> {logs}/{name}.log >> {logs}/{name}.log
+		$USER_SETUP {script} 2>> {logs}/{name}.log >> {logs}/{name}.log
 		[ "$id" != "$(cat $PIDFILE.lock)" ] && exit 0
 		sleep 1
 	done
